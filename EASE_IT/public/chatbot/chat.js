@@ -124,10 +124,14 @@ fileInput.addEventListener('change', async (e) => {
         
         try {
             const imageSrc = await readFileAsDataUrl(file);
+            const token = localStorage.getItem('token');
 
             const response = await fetch('/api/ocr/analyze', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                },
                 body: JSON.stringify({
                     imageSrc,
                     healthConditions: localStorage.getItem('healthConditions') || 'No health data'

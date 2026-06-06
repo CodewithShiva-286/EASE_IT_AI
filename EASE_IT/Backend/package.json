@@ -12,24 +12,23 @@
   "dependencies": {
     "axios": "^1.7.9",
     "bcryptjs": "^3.0.2",
-    "body-parser": "^1.20.3",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.3",
     "morgan": "^1.10.1",
-    "multer": "^1.4.5-lts.1",
     "node-fetch": "^3.3.2",
     "openai": "^4.104.0",
     "tesseract.js": "^6.0.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.14"
   },
   "overrides": {
     "form-data": "^4.0.0",
-    "jws": "^4.0.0"
+    "jws": "^4.0.0",
+    "qs": "^6.15.2"
   },
   "description": ""
 }

@@ -207,10 +207,14 @@ async function recognizeText(imageSrc) {
   setProcessingUI();
 
   try {
+    const token = localStorage.getItem("token");
     const healthConditions = localStorage.getItem("healthConditions") || "No health data available";
     const response = await fetch("/api/ocr/analyze", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        ...(token ? { "Authorization": "Bearer " + token } : {})
+      },
       body: JSON.stringify({ imageSrc, healthConditions })
     });
 

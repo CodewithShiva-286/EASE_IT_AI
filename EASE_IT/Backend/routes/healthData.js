@@ -35,7 +35,7 @@ router.post('/', authMiddleware, async (req, res) => {
           if (['__proto__', 'constructor', 'prototype'].includes(condition)) continue;
           
           const value = catData[condition];
-          if (typeof value === 'boolean' || typeof value === 'string' || typeof value === 'number') {
+          if (typeof value === 'boolean') {
             user.healthData[category][condition] = value;
           }
         }

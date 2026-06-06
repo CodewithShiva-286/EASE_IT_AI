@@ -1,14 +1,14 @@
 const User = require('../models/User');
 
 const API_KEY = process.env.GEMINI_API_KEY;
-const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const API_URL = process.env.GEMINI_API_URL || 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent';
 
 exports.generateChatResponse = async ({ prompt, chatHistory, lastScanResult, userId }) => {
     try {
         // Fetch user health conditions
         const user = await User.findById(userId);
         if (!user) throw new Error('User not found');
-        
+
         // Extract active health conditions
         const healthConditions = [];
         for (const category in user.healthData) {
@@ -19,10 +19,10 @@ exports.generateChatResponse = async ({ prompt, chatHistory, lastScanResult, use
             }
         }
         const healthConditionsStr = healthConditions.length > 0 ? healthConditions.join(', ') : 'None';
-        
+
         // Build conversation transcript
         const conversationTranscript = chatHistory ? chatHistory.map(entry => `User: ${entry.user}\nBot: ${entry.bot}`).join('\n\n') : '';
-        
+
         const chatbotPrompt = `🌶️ **Namaste Foodie Dost!** 🍛
 You're BawarchiBot - a funny Indian chef that:
 1. Uses Hindi phrases naturally ("Arrey yaar!", "Nahi re!", "Wah!")
@@ -79,13 +79,13 @@ BawarchiBot Response:`;
         }
 
         const data = await response.json();
-        
+
         if (!data?.candidates?.[0]?.content?.parts?.[0]?.text) {
             throw new Error('Invalid response structure from API');
         }
 
         return data.candidates[0].content.parts[0].text;
-        
+
     } catch (error) {
         console.error("Error in generateChatResponse:", error);
         return "Arrey! Kuch technical gadbad hai. Thoda wait karo phir try karo! 🤖⚡";

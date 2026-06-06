@@ -1,6 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const rateLimiter = require('../middleware/rateLimiter');
 
 const router = express.Router();
 
@@ -9,27 +10,41 @@ if (!process.env.JWT_SECRET) {
   throw new Error('JWT_SECRET environment variable is required');
 }
 
+// Rate limiters
+const registerLimiter = rateLimiter({ windowMs: 15 * 60 * 1000, max: 10, message: 'Too many registration attempts. Please try again later.' });
+const loginLimiter = rateLimiter({ windowMs: 15 * 60 * 1000, max: 20, message: 'Too many login attempts. Please try again later.' });
+
 // Register route
-router.post('/register', async (req, res) => {
+router.post('/register', registerLimiter, async (req, res) => {
   const { email, username, password } = req.body;
   try {
-    if (!email || !username || !password) {
-      return res.status(400).json({ error: 'Email, username, and password are required' });
+    // Prevent NoSQL injection & validate types
+    if (typeof email !== 'string' || typeof username !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({ error: 'Email, username, and password must be strings' });
+    }
+
+    if (!email.trim() || !username.trim() || !password.trim()) {
+      return res.status(400).json({ error: 'Email, username, and password cannot be empty' });
+    }
+
+    // Enforce password complexity
+    if (password.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters long' });
     }
 
     // Check if a user with the same email already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: email.trim() });
     if (existingUser) {
       return res.status(400).json({ error: 'Email already exists' });
     }
 
-    const existingUsername = await User.findOne({ username });
+    const existingUsername = await User.findOne({ username: username.trim() });
     if (existingUsername) {
       return res.status(400).json({ error: 'Username already exists' });
     }
     
     // User model hashes the password in its pre-save hook.
-    const newUser = new User({ email, username, password });
+    const newUser = new User({ email: email.trim(), username: username.trim(), password });
     await newUser.save();
 
     const token = jwt.sign(
@@ -63,11 +78,16 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Login route remains unchanged...
-router.post('/login', async (req, res) => {
+// Login route
+router.post('/login', loginLimiter, async (req, res) => {
   const { email, password, remember } = req.body; // Using email for login
   try {
-    const user = await User.findOne({ email });
+    // Prevent NoSQL injection & validate types
+    if (typeof email !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({ error: 'Email and password must be strings' });
+    }
+
+    const user = await User.findOne({ email: email.trim() });
     if (user && await user.comparePassword(password)) {
       const token = jwt.sign(
         { userId: user._id, username: user.username },
@@ -97,4 +117,3 @@ router.post('/login', async (req, res) => {
 });
 
 module.exports = router;
-

@@ -31,7 +31,6 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.3",
     "morgan": "^1.10.1",
-    "multer": "^1.4.5-lts.1",
     "openai": "^4.104.0",
     "tesseract.js": "^6.0.1"
   },
@@ -40,6 +39,7 @@
   },
   "overrides": {
     "form-data": "^4.0.0",
-    "jws": "^4.0.0"
+    "jws": "^4.0.0",
+    "qs": "^6.15.2"
   }
 }

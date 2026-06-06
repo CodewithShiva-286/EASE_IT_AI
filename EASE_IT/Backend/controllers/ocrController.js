@@ -71,6 +71,11 @@ exports.analyzeOCR = async ({ imageSrc, healthConditions }) => {
     try {
         if (!imageSrc) throw new Error("Missing imageSrc in request.");
 
+        // Ensure imageSrc is a base64 data URI to prevent SSRF or local file read attacks via Tesseract
+        if (typeof imageSrc !== 'string' || !imageSrc.startsWith('data:image/')) {
+            throw new Error("Invalid image format. Only base64 data:image/... URIs are permitted.");
+        }
+
         // ✅ Perform OCR using Tesseract.js
         console.log("🔄 Processing OCR...");
         const { data: { text } } = await Tesseract.recognize(imageSrc, 'eng', {
@@ -135,7 +140,7 @@ Caution: ⚠️Preservatives (E211), ⚠️Added Sugar"
         const API_KEY = process.env.GEMINI_API_KEY;
         if (!API_KEY) throw new Error("GEMINI_API_KEY is missing from environment variables.");
 
-        const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+        const API_URL = process.env.GEMINI_API_URL || 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent';
         console.log("📡 Sending request to Gemini AI at", API_URL);
 
         const controller = new AbortController();
